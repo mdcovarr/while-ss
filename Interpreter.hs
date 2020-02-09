@@ -1,5 +1,6 @@
 module Interpreter where
 import Data.Map (Map)
+import Data.List
 import qualified Data.Map as Map
 
 import DataObjects
@@ -68,6 +69,7 @@ evaluateArithmetic (store, expr)=
                 Divide -> div x y
                 Modulo -> mod x y
 
+-- Used to print Arithmetic expressions
 instance Show ArithExpr where
   show (IntConst n) = show n
   show (Var s) = s
@@ -75,6 +77,7 @@ instance Show ArithExpr where
   show (TwoArithExpr Subtract a b) = "(" ++ show a ++ "-" ++ show b ++ ")"
   show (TwoArithExpr Multiply a b) = "(" ++ show a ++ "*" ++ show b ++ ")"
 
+-- Used to print Boolean expressions
 instance Show BooleanExpr where
   show (BooleanConst True) = "true"
   show (BooleanConst False) = "false"
@@ -84,10 +87,11 @@ instance Show BooleanExpr where
   show (AndOrValue And a b) = "(" ++ show a ++ "∨" ++ show b ++ ")"
   show (AndOrValue Or a b) = "(" ++ show a ++ "∧" ++ show b ++ ")"
 
+-- Used to print Statements
 instance Show Statement where
   show Skip = "skip"
   show (Assign s a) = s ++ " := " ++ show a
-  -- show (Seq a b) = show a ++ "; " ++ show b
+  show (Seq a) = intercalate "; " $ map show a
   show (If c a b) = "if " ++ show c ++ " then { " ++ show a ++ " } else { " ++ show b ++ " }"
   show (While b c) = "while " ++ show b ++ " do { " ++ show c ++ " }"
 
