@@ -11,7 +11,6 @@ data Statement =
     | While BooleanExpr Statement
     | If BooleanExpr Statement Statement
     | Skip
-    deriving (Show)
 
 -- Arithmetc Operations Object
 data ArithOp =
@@ -20,7 +19,6 @@ data ArithOp =
     | Multiply
     | Divide
     | Modulo
-    deriving (Show)
 
 -- Arithmetic Expression Object
 data ArithExpr =
@@ -28,20 +26,17 @@ data ArithExpr =
     | IntConst Integer
     | Neg ArithExpr
     | TwoArithExpr ArithOp ArithExpr ArithExpr
-    deriving (Show)
 
 -- Boolean And Or operations
 data AndOrOp =
     And
     | Or
-    deriving (Show)
 
 -- Boolean Greater than / Less than / Equal operations
 data GtLtEqualOp =
     Greater
     | Less
     | Equal
-    deriving (Show)
 
 -- Boolean expression
 data BooleanExpr =
@@ -49,4 +44,3 @@ data BooleanExpr =
     | Not BooleanExpr
     | AndOrValue AndOrOp BooleanExpr BooleanExpr
     | GtLtEqualValue GtLtEqualOp ArithExpr ArithExpr
-    deriving (Show)

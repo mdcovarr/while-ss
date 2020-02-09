@@ -68,6 +68,34 @@ evaluateArithmetic (store, expr)=
                 Divide -> div x y
                 Modulo -> mod x y
 
+instance Show ArithExpr where
+  show (IntConst n) = show n
+  show (Var s) = s
+  show (TwoArithExpr Add a b) = "(" ++ show a ++ "+" ++ show b ++ ")"
+  show (TwoArithExpr Subtract a b) = "(" ++ show a ++ "-" ++ show b ++ ")"
+  show (TwoArithExpr Multiply a b) = "(" ++ show a ++ "*" ++ show b ++ ")"
+
+instance Show BooleanExpr where
+  show (BooleanConst True) = "true"
+  show (BooleanConst False) = "false"
+  show (GtLtEqualValue Equal a b) = "(" ++ show a ++ "=" ++ show b ++ ")"
+  show (GtLtEqualValue Less a b) = "(" ++ show a ++ "<" ++ show b ++ ")"
+  show (Not a) = "¬" ++ show a
+  show (AndOrValue And a b) = "(" ++ show a ++ "∨" ++ show b ++ ")"
+  show (AndOrValue Or a b) = "(" ++ show a ++ "∧" ++ show b ++ ")"
+
+instance Show Statement where
+  show Skip = "skip"
+  show (Assign s a) = s ++ " := " ++ show a
+  -- show (Seq a b) = show a ++ "; " ++ show b
+  show (If c a b) = "if " ++ show c ++ " then { " ++ show a ++ " } else { " ++ show b ++ " }"
+  show (While b c) = "while " ++ show b ++ " do { " ++ show c ++ " }"
+
+-- red :: (Map.Map String Integer, Statement) -> Maybe (Map.Map String Integer, Statement)
+-- red (store, statement) =
+--     case statement of
+--         Assign var expr -> 
+
 -- Function used to interpret all possible statement types
 interpreter :: (Map.Map String Integer, Statement) -> Map.Map String Integer
 interpreter (store, statement) =
