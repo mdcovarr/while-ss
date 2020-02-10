@@ -1,7 +1,7 @@
 {-|
     Michael Covarrubias
     Class: CSE 210A
-    Homework: Assignment 2
+    Homework: Assignment 4
     References: https://wiki.haskell.org/Parsing_a_simple_imperative_language
 -}
 
@@ -30,11 +30,11 @@ parseStdin str =
         Left e  -> error $ show e
         Right r -> r
 
--- Funtion to get string to integer values from the Map
-getStore :: (Map.Map String Integer) -> String
-getStore store = let
-    f = \(k,v) -> k ++ " → " ++ show v
-    in unlines $ map f $ Map.toList store
+-- -- Funtion to get string to integer values from the Map
+-- getStore :: (Map.Map String Integer) -> String
+-- getStore store = let
+--     f = \(k,v) -> k ++ " → " ++ show v
+--     in unlines $ map f $ Map.toList store
 
 -- Main function of while interpreter.
 main =
@@ -47,10 +47,8 @@ main =
         let ast = parseStdin contentNew
 
         -- Get the Store Values
-        let dataStore = interpreter (Map.empty, ast)
+        let Just (dataStore, outputStmt, output) = red (Map.empty, ast, [])
 
-        -- Format Output for test compliance
-        let output = getStore dataStore
-        let weHaveCommas = intercalate ", " (lines output)
-        let final = "{" ++ weHaveCommas ++ "}"
-        putStrLn $ filter (/= '\n') final
+        -- -- Format Output for test compliance
+        let final = intercalate "\n " (output)
+        putStrLn final

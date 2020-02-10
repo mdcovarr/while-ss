@@ -83,6 +83,7 @@ instance Show BooleanExpr where
   show (BooleanConst False) = "false"
   show (GtLtEqualValue Equal a b) = "(" ++ show a ++ "=" ++ show b ++ ")"
   show (GtLtEqualValue Less a b) = "(" ++ show a ++ "<" ++ show b ++ ")"
+  show (GtLtEqualValue Greater a b) = "(" ++ show a ++ ">" ++ show b ++ ")"
   show (Not a) = "¬" ++ show a
   show (AndOrValue And a b) = "(" ++ show a ++ "∨" ++ show b ++ ")"
   show (AndOrValue Or a b) = "(" ++ show a ++ "∧" ++ show b ++ ")"
@@ -95,10 +96,53 @@ instance Show Statement where
   show (If c a b) = "if " ++ show c ++ " then { " ++ show a ++ " } else { " ++ show b ++ " }"
   show (While b c) = "while " ++ show b ++ " do { " ++ show c ++ " }"
 
--- red :: (Map.Map String Integer, Statement) -> Maybe (Map.Map String Integer, Statement)
--- red (store, statement) =
---     case statement of
---         Assign var expr -> 
+printStatements :: [Statement] -> String
+printStatements seqList = show seqList
+
+
+-- Funtion to get string to integer values from the Map
+getStore :: (Map.Map String Integer) -> String
+getStore store = let
+    f = \(k,v) -> k ++ " → " ++ show v
+    in unlines $ map f $ Map.toList store
+
+smallStep :: (Map.Map String Integer, Statement) -> (Map.Map String Integer, Statement)
+
+red :: (Map.Map String Integer, Statement, [String]) -> Maybe (Map.Map String Integer, Statement, [String])
+red (store, statement, outs) =
+    case statement of
+        -- Handle Assignment statements Ex: x := 4
+        Assign var expr -> do
+            Just (Map.insert var (evaluateArithmetic (store, expr)) store, Skip, [])
+
+        Seq seqList ->
+            case (null seqList) of
+                True -> Just (store, statement, outs)
+                False -> do
+                    let currentStatement = head seqList
+                    --  s' {x -> 3} statement' = Skip, outs' = []
+                    let Just (s', statement', outs') = red (store, currentStatement, outs)
+                    -- get whats in the map ["x -> 3"]
+                    let storeOut = getStore s'
+
+                    let weHaveCommas = intercalate ", " (lines storeOut)
+                    let final = "{" ++ weHaveCommas ++ "}"
+                    let finalFilter = filter (/= '\n') final
+
+                    -- printStatements [Skip, seqList[1:]] seqList.insert(statement', 0)
+                    let stmtOut = printStatements (statement' : (drop 1 seqList))
+                    let currOutput = stmtOut ++ ", "  ++ finalFilter
+                    red (s', Seq (drop 1 seqList), outs' ++ [currOutput])
+
+        If boolStatement statement1 statement2 -> Just (store, statement, outs)
+            -- case (evaluateBoolean (store, boolStatement)) of
+            --     True -> do
+            --         red (store, statement1, outs)
+            --     False -> red (store, statement2, outs)
+
+        While boolStmt blockStatement -> Just (store, statement, outs)
+
+        Skip -> Nothing
 
 -- Function used to interpret all possible statement types
 interpreter :: (Map.Map String Integer, Statement) -> Map.Map String Integer
