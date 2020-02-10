@@ -106,7 +106,30 @@ getStore store = let
     f = \(k,v) -> k ++ " → " ++ show v
     in unlines $ map f $ Map.toList store
 
-smallStep :: (Map.Map String Integer, Statement) -> (Map.Map String Integer, Statement)
+smallStep :: (Map.Map String Integer, Statement) -> Maybe (Map.Map String Integer, Statement)
+smallStep (store, statement) =
+    case statement of
+        Skip -> Nothing
+
+        Assign var expr -> Just (Map.insert var (evaluateArithmetic (store, expr)) store, Skip)
+
+        Seq seqList ->
+            case (null seqList) of
+                True -> Nothing
+                False ->
+                    case smallStep (store, (head seqList)) of
+                        Just (s', stmt0') -> Just (s', Seq [stmt0', Seq (drop 1 seqList)])
+                        Nothing -> smallStep (store, Seq (drop 1 seqList))
+
+        If b stmt1 stmt2 ->
+            if evaluateBoolean (store, b) then
+                Just (store, stmt1)
+            else Just (store, stmt2)
+
+        While boolexpr block ->
+            if evaluateBoolean (store, boolexpr) then
+                Just (store, Seq [block, (While boolexpr block)])
+            else Just (store, Skip)
 
 red :: (Map.Map String Integer, Statement, [String]) -> Maybe (Map.Map String Integer, Statement, [String])
 red (store, statement, outs) =
