@@ -42,10 +42,8 @@ main =
         let ast = parseStdin contentNew
 
         -- Get the Store Values
-        let Just (dataStore, outputStmt) = iterateSteps (Map.empty, ast)
-
-        let output = getStore dataStore
+        let Just (dataStore, outputStmt, outputList) = iterateSteps (Map.empty, ast, [])
 
         -- -- Format Output for test compliance
-        let final = intercalate "\n " (lines output)
+        let final = intercalate "\n " (outputList)
         putStrLn final
