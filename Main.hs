@@ -30,11 +30,6 @@ parseStdin str =
         Left e  -> error $ show e
         Right r -> r
 
--- -- Funtion to get string to integer values from the Map
--- getStore :: (Map.Map String Integer) -> String
--- getStore store = let
---     f = \(k,v) -> k ++ " → " ++ show v
---     in unlines $ map f $ Map.toList store
 
 -- Main function of while interpreter.
 main =
@@ -47,7 +42,7 @@ main =
         let ast = parseStdin contentNew
 
         -- Get the Store Values
-        let Just (dataStore, outputStmt) = smallStep (Map.empty, ast)
+        let Just (dataStore, outputStmt) = iterateSteps (Map.empty, ast)
 
         let output = getStore dataStore
 
