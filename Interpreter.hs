@@ -114,8 +114,11 @@ iterateSteps (s, stmt, outputList) =
             let storeOutput = getStore s'
             let output = [(filter (/= '\n') stmtOutput), ", ", (filter (/= '\n') storeOutput)]
             let stringOut = unlines output
+
             iterateSteps(s', stmt', outputList ++ [(filter (/= '\n') stringOut)])
+
         Nothing -> Just (s, stmt, outputList)
+
 
 smallStep :: (Map.Map String Integer, Statement) -> Maybe (Map.Map String Integer, Statement)
 smallStep (store, statement) =
@@ -130,7 +133,9 @@ smallStep (store, statement) =
                 False ->
                     case smallStep (store, (head seqList)) of
                         Just (s', stmt0') -> Just (s', Seq [stmt0', Seq (drop 1 seqList)])
-                        Nothing -> smallStep (store, Seq (drop 1 seqList))
+                        -- return here after the Skip -> Nothing is executed
+                        -- Nothing -> smallStep (store, Seq (drop 1 seqList))
+                        Nothing -> Just (store, Seq (drop 1 seqList))
 
         If b stmt1 stmt2 ->
             if evaluateBoolean (store, b) then
@@ -142,41 +147,6 @@ smallStep (store, statement) =
                 Just (store, Seq [block, (While boolexpr block)])
             else Just (store, Skip)
 
-red :: (Map.Map String Integer, Statement, [String]) -> Maybe (Map.Map String Integer, Statement, [String])
-red (store, statement, outs) =
-    case statement of
-        -- Handle Assignment statements Ex: x := 4
-        Assign var expr -> do
-            Just (Map.insert var (evaluateArithmetic (store, expr)) store, Skip, [])
-
-        Seq seqList ->
-            case (null seqList) of
-                True -> Just (store, statement, outs)
-                False -> do
-                    let currentStatement = head seqList
-                    --  s' {x -> 3} statement' = Skip, outs' = []
-                    let Just (s', statement', outs') = red (store, currentStatement, outs)
-                    -- get whats in the map ["x -> 3"]
-                    let storeOut = getStore s'
-
-                    let weHaveCommas = intercalate ", " (lines storeOut)
-                    let final = "{" ++ weHaveCommas ++ "}"
-                    let finalFilter = filter (/= '\n') final
-
-                    -- printStatements [Skip, seqList[1:]] seqList.insert(statement', 0)
-                    let stmtOut = printStatements (statement' : (drop 1 seqList))
-                    let currOutput = stmtOut ++ ", "  ++ finalFilter
-                    red (s', Seq (drop 1 seqList), outs' ++ [currOutput])
-
-        If boolStatement statement1 statement2 -> Just (store, statement, outs)
-            -- case (evaluateBoolean (store, boolStatement)) of
-            --     True -> do
-            --         red (store, statement1, outs)
-            --     False -> red (store, statement2, outs)
-
-        While boolStmt blockStatement -> Just (store, statement, outs)
-
-        Skip -> Nothing
 
 -- Function used to interpret all possible statement types
 interpreter :: (Map.Map String Integer, Statement) -> Map.Map String Integer
