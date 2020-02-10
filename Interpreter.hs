@@ -106,6 +106,12 @@ getStore store = let
     f = \(k,v) -> k ++ " → " ++ show v
     in unlines $ map f $ Map.toList store
 
+iterateSteps :: (Map.Map String Integer, Statement) -> Maybe (Map.Map String Integer, Statement)
+iterateSteps (s, stmt) =
+    case smallStep (s, stmt) of
+        Just (s', stmt') -> iterateSteps(s', stmt')
+        Nothing -> Just (s, stmt)
+
 smallStep :: (Map.Map String Integer, Statement) -> Maybe (Map.Map String Integer, Statement)
 smallStep (store, statement) =
     case statement of
