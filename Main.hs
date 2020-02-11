@@ -45,5 +45,5 @@ main =
         let Just (dataStore, outputStmt, outputList) = iterateSteps (Map.empty, ast, [])
 
         -- -- Format Output for test compliance
-        let final = intercalate "\n " (outputList)
+        let final = intercalate "\n" (outputList)
         putStrLn final
