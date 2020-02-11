@@ -106,16 +106,29 @@ getStore store = let
     f = \(k,v) -> k ++ " → " ++ show v
     in unlines $ map f $ Map.toList store
 
+
+getStoreString :: (Map.Map String Integer) -> String
+getStoreString store = do
+    let storeValues = getStore store
+    let weHaveCommas = intercalate ", " (lines storeValues)
+    let final = "{" ++ weHaveCommas ++ "}"
+    filter (/= '\n') final
+
+
+getOutputString :: (Map.Map String Integer, Statement) -> String
+getOutputString (s, stmt) = do
+    let sOut = getStoreString s
+    let stmtOut = show stmt
+    let out = [(filter (/= '\n') stmtOut), ", ", (filter (/= '\n') sOut)]
+    unlines out
+
+
 iterateSteps :: (Map.Map String Integer, Statement, [String]) -> Maybe (Map.Map String Integer, Statement, [String])
 iterateSteps (s, stmt, outputList) =
     case smallStep (s, stmt) of
         Just (s', stmt') -> do
-            let stmtOutput = show stmt'
-            let storeOutput = getStore s'
-            let output = [(filter (/= '\n') stmtOutput), ", ", (filter (/= '\n') storeOutput)]
-            let stringOut = unlines output
-
-            iterateSteps(s', stmt', outputList ++ [(filter (/= '\n') stringOut)])
+            let output = getOutputString (s', stmt')
+            iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
 
         Nothing -> Just (s, stmt, outputList)
 
@@ -134,8 +147,7 @@ smallStep (store, statement) =
                     case smallStep (store, (head seqList)) of
                         Just (s', stmt0') -> Just (s', Seq [stmt0', Seq (drop 1 seqList)])
                         -- return here after the Skip -> Nothing is executed
-                        -- Nothing -> smallStep (store, Seq (drop 1 seqList))
-                        Nothing -> Just (store, Seq (drop 1 seqList))
+                        Nothing -> smallStep (store, Seq (drop 1 seqList))
 
         If b stmt1 stmt2 ->
             if evaluateBoolean (store, b) then
