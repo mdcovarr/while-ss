@@ -96,10 +96,6 @@ instance Show Statement where
   show (If c a b) = "if " ++ show c ++ " then { " ++ show a ++ " } else { " ++ show b ++ " }"
   show (While b c) = "while " ++ show b ++ " do { " ++ show c ++ " }"
 
-printStatements :: [Statement] -> String
-printStatements seqList = show seqList
-
-
 -- Funtion to get string to integer values from the Map
 getStore :: (Map.Map String Integer) -> String
 getStore store = let
