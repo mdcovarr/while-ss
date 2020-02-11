@@ -1,6 +1,7 @@
 module Interpreter where
 import Data.Map (Map)
 import Data.List
+import qualified Data.Text(strip)
 import qualified Data.Map as Map
 
 import DataObjects
@@ -92,7 +93,11 @@ instance Show BooleanExpr where
 instance Show Statement where
   show Skip = "skip"
   show (Assign s a) = s ++ " := " ++ show a
-  show (Seq a) = intercalate "; " $ map show a
+  show (Seq a) = do
+      let allCommands = map show a
+      let temp = filter (not . null) allCommands
+      intercalate "; " temp
+
   show (If c a b) = "if " ++ show c ++ " then { " ++ show a ++ " } else { " ++ show b ++ " }"
   show (While b c) = "while " ++ show b ++ " do { " ++ show c ++ " }"
 
