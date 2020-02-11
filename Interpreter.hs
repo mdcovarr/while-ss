@@ -77,6 +77,8 @@ instance Show ArithExpr where
   show (TwoArithExpr Add a b) = "(" ++ show a ++ "+" ++ show b ++ ")"
   show (TwoArithExpr Subtract a b) = "(" ++ show a ++ "-" ++ show b ++ ")"
   show (TwoArithExpr Multiply a b) = "(" ++ show a ++ "*" ++ show b ++ ")"
+  show (TwoArithExpr Divide a b) = "(" ++ show a ++ "/" ++ show b ++ ")"
+  show (TwoArithExpr Modulo a b) = "(" ++ show a ++ "%" ++ show b ++ ")"
 
 -- Used to print Boolean expressions
 instance Show BooleanExpr where
@@ -124,6 +126,7 @@ getOutputString (s, stmt) = do
     unlines out
 
 
+-- Function used to interate throught list of commands
 iterateSteps :: (Map.Map String Integer, Statement, [String]) -> Maybe (Map.Map String Integer, Statement, [String])
 iterateSteps (s, stmt, outputList) =
     case smallStep (s, stmt) of
@@ -134,6 +137,7 @@ iterateSteps (s, stmt, outputList) =
         Nothing -> Just (s, stmt, outputList)
 
 
+-- Function used to execute small step of statements
 smallStep :: (Map.Map String Integer, Statement) -> Maybe (Map.Map String Integer, Statement)
 smallStep (store, statement) =
     case statement of
@@ -146,9 +150,9 @@ smallStep (store, statement) =
                 True -> Nothing
                 False ->
                     case smallStep (store, (head seqList)) of
-                        Just (s', stmt0') -> Just (s', Seq [stmt0', Seq (drop 1 seqList)])
+                        Just (s', stmt0') -> Just (s', Seq ([stmt0'] ++ (drop 1 seqList)))
                         -- return here after the Skip -> Nothing is executed
-                        Nothing -> smallStep (store, Seq (drop 1 seqList))
+                        Nothing -> Just (store, Seq (drop 1 seqList))
 
         If b stmt1 stmt2 ->
             if evaluateBoolean (store, b) then
