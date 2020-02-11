@@ -74,6 +74,7 @@ evaluateArithmetic (store, expr)=
 instance Show ArithExpr where
   show (IntConst n) = show n
   show (Var s) = s
+  show (Neg exp) = "-" ++ show exp
   show (TwoArithExpr Add a b) = "(" ++ show a ++ "+" ++ show b ++ ")"
   show (TwoArithExpr Subtract a b) = "(" ++ show a ++ "-" ++ show b ++ ")"
   show (TwoArithExpr Multiply a b) = "(" ++ show a ++ "*" ++ show b ++ ")"
@@ -130,9 +131,26 @@ getOutputString (s, stmt) = do
 iterateSteps :: (Map.Map String Integer, Statement, [String]) -> Maybe (Map.Map String Integer, Statement, [String])
 iterateSteps (s, stmt, outputList) =
     case smallStep (s, stmt) of
-        Just (s', stmt') -> do
-            let output = getOutputString (s', stmt')
-            iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
+        Just (s', stmt') ->
+            case stmt' of
+                Skip -> do
+                    let output = getOutputString (s', stmt')
+                    iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
+                Assign var expr -> do
+                    let output = getOutputString (s', stmt')
+                    iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
+                If b stmt1 stmt2 -> do
+                    let output = getOutputString (s', stmt')
+                    iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
+                While boolexpr block -> do
+                    let output = getOutputString (s', stmt')
+                    iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
+                Seq seqList ->
+                    case (null seqList) of
+                        True -> Just (s, stmt, outputList)
+                        False -> do
+                            let output = getOutputString (s', stmt')
+                            iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
 
         Nothing -> Just (s, stmt, outputList)
 
@@ -151,7 +169,6 @@ smallStep (store, statement) =
                 False ->
                     case smallStep (store, (head seqList)) of
                         Just (s', stmt0') -> Just (s', Seq ([stmt0'] ++ (drop 1 seqList)))
-                        -- return here after the Skip -> Nothing is executed
                         Nothing -> Just (store, Seq (drop 1 seqList))
 
         If b stmt1 stmt2 ->
