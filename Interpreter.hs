@@ -120,7 +120,7 @@ getOutputString :: (Map.Map String Integer, Statement) -> String
 getOutputString (s, stmt) = do
     let sOut = getStoreString s
     let stmtOut = show stmt
-    let out = [(filter (/= '\n') stmtOut), ", ", (filter (/= '\n') sOut)]
+    let out = ["⇒ ", (filter (/= '\n') stmtOut), ", ", (filter (/= '\n') sOut)]
     unlines out
 
 
