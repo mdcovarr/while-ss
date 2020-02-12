@@ -128,31 +128,33 @@ getOutputString (s, stmt) = do
 
 
 -- Function used to interate throught list of commands
-iterateSteps :: (Map.Map String Integer, Statement, [String]) -> Maybe (Map.Map String Integer, Statement, [String])
-iterateSteps (s, stmt, outputList) =
-    case smallStep (s, stmt) of
-        Just (s', stmt') ->
-            case stmt' of
-                Skip -> do
-                    let output = getOutputString (s', stmt')
-                    iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
-                Assign var expr -> do
-                    let output = getOutputString (s', stmt')
-                    iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
-                If b stmt1 stmt2 -> do
-                    let output = getOutputString (s', stmt')
-                    iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
-                While boolexpr block -> do
-                    let output = getOutputString (s', stmt')
-                    iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
-                Seq seqList ->
-                    case (null seqList) of
-                        True -> Just (s, stmt, outputList)
-                        False -> do
-                            let output = getOutputString (s', stmt')
-                            iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)])
+iterateSteps :: (Map.Map String Integer, Statement, [String], Integer) -> Maybe (Map.Map String Integer, Statement, [String], Integer)
+iterateSteps (s, stmt, outputList, counter) =
+    if counter == 9999 then Just (s, stmt, outputList, counter)
+    else
+        case smallStep (s, stmt) of
+            Just (s', stmt') ->
+                case stmt' of
+                    Skip -> do
+                        let output = getOutputString (s', stmt')
+                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                    Assign var expr -> do
+                        let output = getOutputString (s', stmt')
+                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                    If b stmt1 stmt2 -> do
+                        let output = getOutputString (s', stmt')
+                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                    While boolexpr block -> do
+                        let output = getOutputString (s', stmt')
+                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                    Seq seqList ->
+                        case (null seqList) of
+                            True -> Just (s, stmt, outputList, counter)
+                            False -> do
+                                let output = getOutputString (s', stmt')
+                                iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
 
-        Nothing -> Just (s, stmt, outputList)
+            Nothing -> Just (s, stmt, outputList, counter)
 
 
 -- Function used to execute small step of statements
@@ -178,7 +180,7 @@ smallStep (store, statement) =
 
         While boolexpr block ->
             if evaluateBoolean (store, boolexpr) then
-                Just (store, Seq [block, (While boolexpr block)])
+                Just (store, Seq ([block] ++ [(While boolexpr block)]))
             else Just (store, Skip)
 
 
