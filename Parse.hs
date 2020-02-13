@@ -27,7 +27,7 @@ whileParser = whitespaceParser >> statementParser
 statementParser :: Parser Statement -- define type for statementParser
 statementParser =
     parenthesisParser statementParser
-    <|> bracesParser statementParser
+--    <|> bracesParser statementParser -- might need to remove, this is how we are cropping off part of command
     <|> sequenceOfStatements
 
 -- determining how to handle sequence of statements
@@ -40,9 +40,19 @@ sequenceOfStatements =
 statementParser' :: Parser Statement
 statementParser' =
     ifStatement
+    <|> sequenceStatement
     <|> whileStatement
     <|> skipStatement
     <|> assignStatement
+
+sequenceStatement :: Parser Statement
+sequenceStatement =
+    do
+        reservedNameParser "{"
+        sequence <- (sepBy1 statementParser' semicolonParser)
+        reservedNameParser "}"
+
+        return $ if length sequence == 1 then head sequence else Seq sequence
 
 ifStatement :: Parser Statement
 ifStatement =

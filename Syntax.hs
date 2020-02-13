@@ -18,7 +18,9 @@ whileSyntax =
             "else",
             "skip",
             "true",
-            "false"
+            "false",
+            "{",
+            "}"
         ],
         Token.reservedOpNames = [
             "+",
