@@ -27,8 +27,8 @@ whileParser = whitespaceParser >> statementParser
 statementParser :: Parser Statement -- define type for statementParser
 statementParser =
     parenthesisParser statementParser
---    <|> bracesParser statementParser -- might need to remove, this is how we are cropping off part of command
     <|> sequenceOfStatements
+    -- <|> bracesParser statementParser
 
 -- determining how to handle sequence of statements
 sequenceOfStatements =
