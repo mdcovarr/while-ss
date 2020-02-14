@@ -30,6 +30,12 @@ statementParser =
     <|> sequenceOfStatements
     -- <|> bracesParser statementParser
 
+whileRecursiveParser :: Parser Statement
+whileRecursiveParser =
+    parenthesisParser statementParser
+    <|> bracesParser statementParser
+    <|> statementParser'
+
 -- determining how to handle sequence of statements
 sequenceOfStatements =
     do
@@ -71,7 +77,8 @@ whileStatement =
         reservedNameParser "while"
         condition <- booleanExpressionParser
         reservedNameParser "do"
-        whileStatement <- statementParser
+        -- whileStatement <- statementParser
+        whileStatement <- whileRecursiveParser
         return $ While condition whileStatement
 
 assignStatement :: Parser Statement
