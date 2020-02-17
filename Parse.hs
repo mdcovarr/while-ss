@@ -45,8 +45,8 @@ sequenceOfStatements =
 
 statementParser' :: Parser Statement
 statementParser' =
-    ifStatement
-    <|> sequenceStatement
+    sequenceStatement
+    <|> ifStatement
     <|> whileStatement
     <|> skipStatement
     <|> assignStatement
