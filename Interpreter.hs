@@ -131,35 +131,35 @@ getOutputString (s, stmt) = do
 -- Function used to interate throught list of commands
 iterateSteps :: (Map.Map String Integer, Statement, [String], Integer) -> Maybe (Map.Map String Integer, Statement, [String], Integer)
 iterateSteps (s, stmt, outputList, counter) =
-    if counter == 10000 then Just (s, stmt, outputList, counter)
-    else
-        case smallStep (s, stmt) of
-            Just (s', stmt') ->
+    case smallStep (s, stmt, counter) of
+        Just (s', stmt', newCounter) ->
+            if (newCounter > 10000) then Just (s', stmt', outputList, newCounter)
+            else
                 case stmt' of
                     Skip -> do
                         let output = getOutputString (s', stmt')
-                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], newCounter)
                     Assign var expr -> do
                         let output = getOutputString (s', stmt')
-                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], newCounter)
                     If b stmt1 stmt2 -> do
                         let output = getOutputString (s', stmt')
-                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], newCounter)
                     While boolexpr block -> do
                         let output = getOutputString (s', stmt')
-                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], newCounter)
                     Seq [] -> Just (s, stmt, outputList, counter)
                     Seq seqList -> do
                         case head seqList of
                             Skip -> do
                                 let output = getOutputString (s', stmt')
-                                iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                                iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], newCounter)
                             Assign v e -> do
                                 let output = getOutputString (s', stmt')
-                                iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                                iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], newCounter)
                             If boo s1 s2 -> do
                                 let output = getOutputString (s', stmt')
-                                iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                                iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], newCounter)
                             While bexpr c -> do
                                 let output = getOutputString (s', stmt')
                                 iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
@@ -169,39 +169,39 @@ iterateSteps (s, stmt, outputList, counter) =
                                         iterateSteps (s', stmt', outputList, counter)
                                     False -> do
                                         let output = getOutputString (s', stmt')
-                                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], counter + 1)
+                                        iterateSteps (s', stmt', outputList ++ [(filter (/= '\n') output)], newCounter)
 
-            Nothing -> Just (s, stmt, outputList, counter)
+        Nothing -> Just (s, stmt, outputList, counter)
 
 
 -- Function used to execute small step of statements
-smallStep :: (Map.Map String Integer, Statement) -> Maybe (Map.Map String Integer, Statement)
-smallStep (store, statement) =
+smallStep :: (Map.Map String Integer, Statement, Integer) -> Maybe (Map.Map String Integer, Statement, Integer)
+smallStep (store, statement, counter) =
     case statement of
         Skip -> Nothing
 
-        Assign var expr -> Just (Map.insert var (evaluateArithmetic (store, expr)) store, Skip)
+        Assign var expr -> Just (Map.insert var (evaluateArithmetic (store, expr)) store, Skip, counter + 1)
 
         Seq seqList ->
             case (null seqList) of
                 True -> Nothing
                 False ->
-                    case smallStep (store, (head seqList)) of
-                        Just (s', stmt0') -> Just (s', Seq ([stmt0'] ++ (drop 1 seqList)))
+                    case smallStep (store, (head seqList), counter) of
+                        Just (s', stmt0', newCounter) -> Just (s', Seq ([stmt0'] ++ (drop 1 seqList)), newCounter)
                         Nothing -> do
                             let currList = (drop 1 seqList)
                             if (null currList) then Nothing
-                            else Just (store, Seq (drop 1 seqList))
+                            else Just (store, Seq (drop 1 seqList), counter + 1)
 
         If b stmt1 stmt2 ->
             if evaluateBoolean (store, b) then
-                Just (store, stmt1)
-            else Just (store, stmt2)
+                Just (store, stmt1, counter)
+            else Just (store, stmt2, counter)
 
         While boolexpr block ->
             if evaluateBoolean (store, boolexpr) then
-                Just (store, Seq ([block] ++ [(While boolexpr block)]))
-            else Just (store, Skip)
+                Just (store, Seq [block, (While boolexpr block)], counter + 1)
+            else Just (store, Skip, counter + 1)
 
 
 -- Function used to interpret all possible statement types
