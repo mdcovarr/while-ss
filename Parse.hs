@@ -125,7 +125,7 @@ arithTerm =  parenthesisParser arithExpressionParser
     <|> liftM Var identifierParser
     <|> liftM IntConst integerParser
 
-boolTerm =  parenthesisParser booleanExpressionParser
+boolTerm =  try (parenthesisParser booleanExpressionParser)
     <|> (reservedNameParser "true"  >> return (BooleanConst True))
     <|> (reservedNameParser "false" >> return (BooleanConst False))
     <|> rExpression
